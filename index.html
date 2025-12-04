@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arte Sobre Ruedas - Carros a Escala Reciclados</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-dark: #1a1a1a;
+            --primary-gray: #2d2d2d;
+            --secondary-gray: #4a4a4a;
+            --light-gray: #e0e0e0;
+            --accent-green: #4CAF50;
+            --accent-green-dark: #45a049;
+            --metal-silver: #c0c0c0;
+            --text-light: #ffffff;
+            --text-dark: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--accent-green);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #ff4444;
+        }
+
+        .toast.info {
+            background: var(--primary-dark);
+        }
+
+        /* Loading States */
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Badges */
+        .stock-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--accent-green);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* Discount tag */
+        .discount-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ff4444;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Header & Navigation */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-gray) 100%);
+            color: var(--text-light);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .school-logos {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .school-logo-img {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+            background: white;
+            padding: 0.3rem;
+            border-radius: 8px;
+        }
+
+        .team-logo-container {
+            text-align: center;
+            margin: 2rem auto 3rem;
+            max-width: 300px;
+        }
+
+        .team-logo-img {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            object-fit: contain;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            background: white;
+            padding: 1rem;
+        }
+
+        .logo-placeholder {
+            background: linear-gradient(135deg, var(--light-gray) 0%, white 100%);
+            border: 3px dashed var(--secondary-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-gray);
+            font-weight: bold;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-green);
+        }
+
+        .cart-btn {
+            background: var(--accent-green);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .cart-btn:hover {
+            background: var(--accent-green-dark);
+            transform: scale(1.05);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .cart-btn {
+                padding: 0.6rem 1.2rem;
+            }
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 70px;
+            background: linear-gradient(135deg, var(--primary-gray) 0%, var(--secondary-gray) 100%);
+            color: var(--text-light);
+            padding: 6rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(76,175,80,0.1)"/></svg>');
+            background-size: 50px 50px;
+            opacity: 0.3;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-green);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            color: var(--light-gray);
+        }
+
+        .cta-btn {
+            background: var(--accent-green);
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .cta-btn:hover {
+            background: var(--accent-green-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(76,175,80,0.4);
+        }
+
+        /* Section Styles */
+        section {
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-dark);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: var(--accent-green);
+            margin: 1rem auto;
+            border-radius: 2px;
+        }
+
+        /* Products Grid */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: var(--light-gray);
+            will-change: transform;
+        }
+
+        .product-image[data-src] {
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .product-image.loaded {
+            opacity: 1;
+        }
+
+        .product-info {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--primary-dark);
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .product-description {
+            color: var(--secondary-gray);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: var(--accent-green);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--accent-green-dark);
+            transform: scale(1.05);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            margin: 2rem;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--secondary-gray);
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-dark);
+        }
+
+        #modalProductImage {
+            transition: opacity 0.3s ease;
+        }
+
+        .color-selector {
+            margin: 2rem 0;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .color-option.selected {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(76,175,80,0.6);
+            transform: scale(1.15);
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+        }
+
+        .customization-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+
+        .customization-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--secondary-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+
+        /* Cart Styles */
+        .cart-sidebar {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 450px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+            transition: right 0.3s;
+            z-index: 2001;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-sidebar.active {
+            right: 0;
+        }
+
+        .cart-header {
+            background: var(--primary-dark);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .cart-items {
+            padding: 1rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+            align-items: flex-start;
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: var(--light-gray);
+            flex-shrink: 0;
+        }
+
+        .cart-item-info {
+            flex: 1;
+            min-width: 0;
+            word-wrap: break-word;
+        }
+
+        .cart-item-info strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .cart-item-info p {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+
+        .remove-item {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+
+        .remove-item:hover {
+            background: #cc0000;
+        }
+
+        .cart-total {
+            padding: 1.5rem;
+            background: var(--light-gray);
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .checkout-btn {
+            width: 90%;
+            margin: 1rem 5%;
+            padding: 1rem;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .checkout-btn:hover {
+            background: var(--accent-green-dark);
+        }
+
+        @media (max-width: 768px) {
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+        }
+
+        /* About Section */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .team-member:hover {
+            transform: translateY(-10px);
+        }
+
+        .team-member-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Contact Section */
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .contact-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .contact-icon {
+            font-size: 3rem;
+            color: var(--accent-green);
+            margin-bottom: 1rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid var(--secondary-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary-dark);
+            color: var(--text-light);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--primary-dark);
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .school-logo-img {
+                height: 35px;
+            }
+
+            nav {
+                padding: 0 1rem;
+                gap: 1rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .logo {
+                font-size: 1.4rem;
+            }
+
+            .school-logo-img {
+                height: 40px;
+            }
+
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .cart-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--secondary-gray);
+        }
+
+        .empty-cart p:first-child {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-cart p:last-child {
+            font-size: 1rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .quantity-btn {
+            background: var(--secondary-gray);
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .quantity-controls span {
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .discount-banner {
+            background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-dark) 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin: 2rem 0;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .payment-methods {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+
+        .payment-instructions {
+            background: #e8f5e9;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .payment-instructions h4 {
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--accent-green);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1001;
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 300px;
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        .install-prompt-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .install-prompt button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .install-prompt .install-btn {
+            background: white;
+            color: var(--accent-green);
+        }
+
+        .install-prompt .dismiss-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer"></div>
+
+    <!-- PWA Install Prompt -->
+    <div class="install-prompt" id="installPrompt">
+        <p>¿Instalar Arte Sobre Ruedas como aplicación?</p>
+        <div class="install-prompt-buttons">
+            <button class="install-btn" onclick="installApp()">✅ Instalar</button>
+            <button class="dismiss-btn" onclick="dismissInstallPrompt()">❌ Ahora no</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <div class="school-logos">
+                    <!-- Logo 1: COBAEJ -->
+                    <img src="logocobaej.png" alt="COBAEJ" class="school-logo-img" 
+                         onerror="this.style.display='flex'; this.innerHTML='Logo COBAEJ'">
+                    <!-- Logo 2: Plantel 20 -->
+                    <img src="loboscobaej.png" alt="Plantel 20" class="school-logo-img"
+                         onerror="this.style.display='flex'; this.innerHTML='Plantel 20'">
+                </div>
+                <span style="margin-left: 1rem;">🚗 Arte Sobre Ruedas</span>
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#productos">Productos</a></li>
+                <li><a href="#personalizado">Personalizado</a></li>
+                <li><a href="#nosotros">Nosotros</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+                <li><a href="#" class="cart-btn" onclick="toggleCart()">
+                    🛒 Carrito
+                    <span class="cart-count" id="cartCount">0</span>
+                </a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <!-- Logo del Equipo -->
+            <div class="team-logo-container">
+                <img src="logo-arte-sobre-ruedas.jpg" alt="Arte Sobre Ruedas Logo" 
+                     class="team-logo-img"
+                     onerror="this.style.display='flex'; this.innerHTML='Logo<br>Arte Sobre Ruedas'">
+            </div>
+            
+            <h1>Arte Sobre Ruedas</h1>
+            <p>Carros a escala únicos hechos con materiales de herrería reciclados. Cada pieza es una obra de arte funcional que combina creatividad, sustentabilidad y pasión automotriz.</p>
+            <a href="#productos" class="cta-btn">Ver Catálogo</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">♻️</div>
+                <h3>100% Reciclado</h3>
+                <p>Utilizamos materiales de herrería reciclados para crear arte sustentable</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Personalizable</h3>
+                <p>Elige colores, diseños y detalles únicos para tu carro</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Calidad Artesanal</h3>
+                <p>Cada pieza es trabajada a mano con dedicación y detalle</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="discount-banner">
+        🎉 ¡Descuentos especiales a partir de tu segunda compra! Envío gratis en Talpa de Allende
+    </div>
+
+    <!-- Products Section -->
+    <section id="productos">
+        <h2 class="section-title">Nuestros Modelos</h2>
+        <div class="products-grid" id="productsGrid"></div>
+    </section>
+
+    <!-- Payment Methods Section -->
+    <section class="payment-methods">
+        <h2 class="section-title">💳 Métodos de Pago</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💵</div>
+                <h3>Efectivo</h3>
+                <p>Paga al recibir tu producto en Talpa de Allende</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏦</div>
+                <h3>Transferencia</h3>
+                <p>Transferencia bancaria BBVA, Banorte o Santander</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>WhatsApp Pay</h3>
+                <p>Pago por enlace en WhatsApp (próximamente)</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Custom Order Section -->
+    <section id="personalizado" style="background: var(--light-gray); border-radius: 20px; padding: 3rem;">
+        <h2 class="section-title">Diseña Tu Carro Personalizado</h2>
+        <p style="text-align: center; max-width: 700px; margin: 0 auto 2rem; color: var(--secondary-gray);">
+            ¿Tienes un diseño en mente? Crea tu carro completamente personalizado. Completamos un cuestionario y nos pondremos en contacto contigo para hacer realidad tu visión.
+        </p>
+        <form id="customOrderForm" style="max-width: 600px; margin: 0 auto; background: white; padding: 2rem; border-radius: 15px;">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" required placeholder="Tu nombre">
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico *</label>
+                <input type="email" required placeholder="tu@email.com">
+            </div>
+            <div class="form-group">
+                <label>Teléfono / WhatsApp *</label>
+                <input type="tel" required placeholder="+52 123 456 7890">
+            </div>
+            <div class="form-group">
+                <label>Tipo de Vehículo Deseado *</label>
+                <select required>
+                    <option value="">Selecciona una opción</option>
+                    <option>Jeep Clásico</option>
+                    <option>Pick-up</option>
+                    <option>Camión de Carga</option>
+                    <option>Deportivo</option>
+                    <option>Otro (especificar en descripción)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Colores Preferidos</label>
+                <input type="text" placeholder="Ej: Rojo y negro">
+            </div>
+            <div class="form-group">
+                <label>Descripción Detallada de tu Diseño *</label>
+                <textarea required placeholder="Describe el diseño que imaginas: detalles específicos, stickers, nombres, características especiales, etc."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Presupuesto Aproximado (MXN)</label>
+                <input type="text" placeholder="Ej: $500 - $800">
+            </div>
+            <button type="submit" class="btn" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                📨 Enviar Solicitud de Diseño
+            </button>
+        </form>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros">
+        <h2 class="section-title">Sobre Nosotros</h2>
+        <p style="text-align: center; max-width: 800px; margin: 0 auto 3rem; font-size: 1.1rem; color: var(--secondary-gray);">
+            Somos un grupo de estudiantes de quinto semestre del Colegio de Bachilleres del Estado de Jalisco Plantel 20 Talpa de Allende. Unidos por la pasión por el arte, la sustentabilidad y la creatividad, creamos carros a escala únicos utilizando materiales de herrería reciclados. Cada pieza representa nuestro compromiso con el medio ambiente y la excelencia artesanal.
+        </p>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="team-member-icon">👨‍🎓</div>
+                <h3>Gustavo Delgadillo</h3>
+                <p>Co-fundador</p>
+            </div>
+            <div class="team-member">
+                <div class="team-member-icon">👩‍🎓</div>
+                <h3>Britany Hernández</h3>
+                <p>Co-fundadora</p>
+            </div>
+            <div class="team-member">
+                <div class="team-member-icon">👩‍🎓</div>
+                <h3>Allison Ortega</h3>
+                <p>Co-fundadora</p>
+            </div>
+            <div class="team-member">
+                <div class="team-member-icon">👨‍🎓</div>
+                <h3>Brayan Palomera</h3>
+                <p>Co-fundador</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto">
+        <h2 class="section-title">Contáctanos</h2>
+        <div class="contact-info">
+            <div class="contact-card">
+                <div class="contact-icon">📱</div>
+                <h3>WhatsApp</h3>
+                <p>Envíanos un mensaje directo</p>
+                <a href="https://wa.me/5212345678900" class="btn" style="display: inline-block; margin-top: 1rem;">
+                    Chatear en WhatsApp
+                </a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">📧</div>
+                <h3>Email</h3>
+                <p>Escríbenos a:</p>
+                <a href="mailto:artesobreruedas@gmail.com" style="color: var(--accent-green); font-weight: bold; text-decoration: none;">
+                    artesobreruedas@gmail.com
+                </a>
+            </div>
+            <div class="contact-card">
+                <div class="contact-icon">📍</div>
+                <h3>Ubicación</h3>
+                <p>Talpa de Allende, Jalisco</p>
+                <p style="margin-top: 1rem; color: var(--secondary-gray);">Envíos a todo México</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <h2 id="modalProductName"></h2>
+            <img id="modalProductImage" style="width: 100%; max-height: 300px; object-fit: contain; margin: 1rem 0; background: var(--light-gray); border-radius: 10px;">
+            
+            <div class="color-selector">
+                <h3>Selecciona un Color</h3>
+                <div class="color-options" id="colorOptions"></div>
+            </div>
+
+            <div class="customization-section">
+                <h3>Personalización Opcional</h3>
+                
+                <div style="background: white; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 1rem;">🎨 Sticker o Diseño Especial</h4>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Descripción del sticker/diseño</label>
+                    <input type="text" class="custom-input" id="stickerInput" placeholder="Ej: Logo deportivo, bandera, símbolo, llamas">
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;">Color del sticker</label>
+                    <select class="custom-input" id="stickerColorInput">
+                        <option value="">Seleccionar color</option>
+                        <option value="Negro">Negro</option>
+                        <option value="Blanco">Blanco</option>
+                        <option value="Rojo">Rojo</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Verde">Verde</option>
+                        <option value="Amarillo">Amarillo</option>
+                        <option value="Naranja">Naranja</option>
+                        <option value="Plateado">Plateado</option>
+                        <option value="Dorado">Dorado</option>
+                    </select>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;">Ubicación del sticker</label>
+                    <select class="custom-input" id="stickerLocationInput">
+                        <option value="">Seleccionar ubicación</option>
+                        <option value="Capó/Cofre">Capó/Cofre</option>
+                        <option value="Puertas laterales">Puertas laterales</option>
+                        <option value="Techo">Techo</option>
+                        <option value="Parte trasera">Parte trasera</option>
+                        <option value="Costados">Costados (ambos lados)</option>
+                        <option value="Parabrisas">Parabrisas</option>
+                        <option value="Todo el vehículo">Todo el vehículo</option>
+                        <option value="Otro (especificar en comentarios)">Otro (especificar)</option>
+                    </select>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;">Subir imagen de referencia (opcional)</label>
+                    <input type="file" class="custom-input" id="stickerImageInput" 
+                           accept="image/*"
+                           style="padding: 0.5rem; border: 2px dashed var(--secondary-gray); background: white;">
+                    <p style="font-size: 0.85rem; color: var(--secondary-gray); margin-top: 0.5rem;">
+                        📸 Sube una imagen del diseño que quieres agregar (logo, símbolo, etc.)
+                    </p>
+                    <div id="stickerImagePreview" style="margin-top: 1rem; display: none;">
+                        <img id="stickerPreviewImg" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid var(--accent-green);">
+                        <button type="button" onclick="removeStickerImage()" style="display: block; margin-top: 0.5rem; background: #ff4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
+                            🗑️ Eliminar imagen
+                        </button>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 1.5rem; border-radius: 10px;">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 1rem;">✍️ Texto Personalizado</h4>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Texto a agregar</label>
+                    <input type="text" class="custom-input" id="nameInput" placeholder="Ej: TURBO, SPEED, tu nombre, frase">
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;">Color del texto</label>
+                    <select class="custom-input" id="textColorInput">
+                        <option value="">Seleccionar color</option>
+                        <option value="Negro">Negro</option>
+                        <option value="Blanco">Blanco</option>
+                        <option value="Rojo">Rojo</option>
+                        <option value="Azul">Azul</option>
+                        <option value="Verde">Verde</option>
+                        <option value="Amarillo">Amarillo</option>
+                        <option value="Naranja">Naranja</option>
+                        <option value="Plateado">Plateado</option>
+                        <option value="Dorado">Dorado</option>
+                    </select>
+                    
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; margin-top: 1rem;">Ubicación del texto</label>
+                    <select class="custom-input" id="textLocationInput">
+                        <option value="">Seleccionar ubicación</option>
+                        <option value="Capó/Cofre">Capó/Cofre</option>
+                        <option value="Puertas laterales">Puertas laterales</option>
+                        <option value="Parte trasera">Parte trasera</option>
+                        <option value="Costados">Costados (ambos lados)</option>
+                        <option value="Parachoques delantero">Parachoques delantero</option>
+                        <option value="Parachoques trasero">Parachoques trasero</option>
+                        <option value="Otro (especificar en comentarios)">Otro (especificar)</option>
+                    </select>
+                </div>
+                
+                <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <p style="margin: 0; font-size: 0.9rem; color: #856404;">
+                        💡 <strong>Tip:</strong> Cuanto más detalles nos proporciones, mejor podremos crear tu diseño personalizado perfecto.
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <p style="font-size: 1.3rem; font-weight: bold; color: var(--accent-green); margin-bottom: 1rem;">
+                    Precio: <span id="modalPrice">$0.00</span> MXN
+                </p>
+                <button class="btn" style="padding: 1rem 2rem; font-size: 1.1rem;" onclick="addToCart()">
+                    🛒 Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="close-modal" onclick="toggleCart()">×</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="empty-cart">
+                <p style="font-size: 3rem;">🛒</p>
+                <p>Tu carrito está vacío</p>
+            </div>
+        </div>
+        <div class="cart-total" id="cartTotal">Total: $0.00 MXN</div>
+        <button class="checkout-btn" onclick="proceedToCheckout()">Proceder al Pago</button>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeCheckout()">×</button>
+            <h2>Finalizar Compra</h2>
+            <form id="checkoutForm" style="margin-top: 2rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--primary-dark);">Información de Contacto</h3>
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="checkoutName" required placeholder="Tu nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Correo Electrónico *</label>
+                    <input type="email" id="checkoutEmail" required placeholder="tu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono / WhatsApp *</label>
+                    <input type="tel" id="checkoutPhone" required placeholder="+52 123 456 7890">
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem; color: var(--primary-dark);">Dirección de Envío</h3>
+                <div class="form-group">
+                    <label>Calle y Número *</label>
+                    <input type="text" id="checkoutStreet" required placeholder="Calle Principal #123">
+                </div>
+                <div class="form-group">
+                    <label>Colonia / Barrio *</label>
+                    <input type="text" id="checkoutNeighborhood" required placeholder="Centro">
+                </div>
+                <div class="form-group">
+                    <label>Ciudad / Municipio *</label>
+                    <input type="text" id="checkoutCity" required placeholder="Talpa de Allende">
+                </div>
+                <div class="form-group">
+                    <label>Estado *</label>
+                    <input type="text" id="checkoutState" required placeholder="Jalisco">
+                </div>
+                <div class="form-group">
+                    <label>Código Postal *</label>
+                    <input type="text" id="checkoutZip" required placeholder="48200">
+                </div>
+
+                <div class="form-group">
+                    <label>Método de Pago *</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Selecciona método</option>
+                        <option value="efectivo">💵 Efectivo al recibir</option>
+                        <option value="transferencia">🏦 Transferencia bancaria</option>
+                        <option value="whatsapp">📱 WhatsApp Pay (próximamente)</option>
+                    </select>
+                </div>
+
+                <div id="paymentInstructions" class="payment-instructions">
+                    <h4>Instrucciones para pago por transferencia:</h4>
+                    <p><strong>Banco:</strong> BBVA<br>
+                    <strong>CLABE:</strong> 012 180 00123456789 1<br>
+                    <strong>A nombre de:</strong> Arte Sobre Ruedas<br>
+                    <strong>Referencia:</strong> ASR-<span id="orderReference">0000</span></p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+                        *Envía el comprobante por WhatsApp para confirmar tu pedido
+                    </p>
+                </div>
+
+                <div style="background: var(--light-gray); padding: 1.5rem; border-radius: 10px; margin: 2rem 0;">
+                    <h3 style="margin-bottom: 1rem;">Resumen del Pedido</h3>
+                    <div id="checkoutSummary"></div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid var(--secondary-gray);">
+                        <p style="font-size: 1.2rem; font-weight: bold;">
+                            Total a Pagar: <span id="checkoutTotal" style="color: var(--accent-green);">$0.00</span> MXN
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Comentarios Adicionales</label>
+                    <textarea id="checkoutComments" placeholder="Referencias de ubicación, preferencias de entrega, etc."></textarea>
+                </div>
+
+                <button type="submit" class="btn" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    ✅ Confirmar Pedido
+                </button>
+                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--secondary-gray); text-align: center;">
+                    Al confirmar, recibirás un mensaje de WhatsApp con los detalles del pedido
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Arte Sobre Ruedas - Colegio de Bachilleres del Estado de Jalisco Plantel 20</p>
+        <p style="margin-top: 0.5rem; color: var(--metal-silver);">Talpa de Allende, Jalisco</p>
+        <p style="margin-top: 1rem;">♻️ Comprometidos con el reciclaje y la sustentabilidad</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            <button onclick="clearAllData()" style="background: none; border: none; color: var(--metal-silver); cursor: pointer; text-decoration: underline;">
+                🗑️ Borrar todos los datos guardados
+            </button>
+        </p>
+    </footer>
+
+    <script>
+        // Configuración de la aplicación
+        const AppConfig = {
+            whatsappNumber: '5212345678900',
+            email: 'artesobreruedas@gmail.com',
+            currency: 'MXN',
+            discountPercentage: 10,
+            freeShippingMin: 1000,
+            taxPercentage: 0,
+            shippingCost: 99
+        };
+
+        // Products Data - Pueden agregar precios después
+        const products = [
+            {
+                id: 1,
+                name: "Pickup Clásica",
+                description: "Inspirado en las iconicas Pickups todo terreno. Perfecto para los amantes de la aventura.",
+                basePrice: 0, // Definir precio después
+                image: "pickupgris.jpg",
+                colorImages: {
+                    'Gris': 'pickupgris.jpg',
+                    'Negro': 'pickupnegro.jpg',
+                    'Blanco': 'pickupblanco.jpg',
+                    'Rojo': 'pickuprojo.jpg',
+                    'Azul': 'pickupazul.jpg',
+                    'Verde': 'pickupverde.jpg',
+                    'Amarillo': 'pickupamarillo.jpg',
+                    'Naranja': 'pickupnaranja.jpg'
+                },
+                stock: 10,
+                available: true
+            },
+            {
+                id: 2,
+                name: "Pick-up Ranchera",
+                description: "Camioneta tipo pick-up con caja de carga funcional. Ideal para coleccionistas.",
+                basePrice: 0, // Definir precio después
+                image: "redilasgris.jpg",
+                colorImages: {
+                    'Gris': 'redilasgris.jpg',
+                    'Negro': 'redilasnegro.jpg',
+                    'Blanco': 'redilasblanco.jpg',
+                    'Rojo': 'redilasrojo.jpg',
+                    'Azul': 'redilasazul.jpg',
+                    'Verde': 'redilasverde.jpg',
+                    'Amarillo': 'redilasamarillo.jpg',
+                    'Naranja': 'redilasnaranja.jpg'
+                },
+                stock: 8,
+                available: true
+            },
+            {
+                id: 3,
+                name: "Camión de Carga Pesada",
+                description: "Tráiler de carga con remolque. Una pieza impresionante para cualquier colección.",
+                basePrice: 0, // Definir precio después
+                image: "camiongris.jpg",
+                colorImages: {
+                    'Gris': 'camiongris.jpg',
+                    'Negro': 'camionnegro.jpg',
+                    'Blanco': 'camionblanco.jpg',
+                    'Rojo': 'camionrojo.jpg',
+                    'Azul': 'camionazul.jpg',
+                    'Verde': 'camionverde.jpg',
+                    'Amarillo': 'camionamarillo.jpg',
+                    'Naranja': 'camionnaranja.jpg'
+                },
+                stock: 5,
+                available: true
+            },
+            {
+                id: 4,
+                name: "Jeep Militar Clásico",
+                description: "Réplica detallada de un jeep militar. Acabados metálicos de alta calidad.",
+                basePrice: 0, // Definir precio después
+                image: "jeepgris.jpg",
+                colorImages: {
+                    'Gris': 'jeepgris.jpg',
+                    'Negro': 'jeepnegro.jpg',
+                    'Blanco': 'jeepblanco.jpg',
+                    'Rojo': 'jeeprojo.jpg',
+                    'Azul': 'jeepazul.jpg',
+                    'Verde': 'jeepverde.jpg',
+                    'Amarillo': 'jeepamarillo.jpg',
+                    'Naranja': 'jeepnaranja.jpg'
+                },
+                stock: 12,
+                available: true
+            }
+        ];
+
+        const colors = [
+            { name: 'Gris', code: '#808080' },
+            { name: 'Negro', code: '#000000' },
+            { name: 'Blanco', code: '#FFFFFF' },
+            { name: 'Rojo', code: '#DC143C' },
+            { name: 'Azul', code: '#1E90FF' },
+            { name: 'Verde', code: '#228B22' },
+            { name: 'Amarillo', code: '#FFD700' },
+            { name: 'Naranja', code: '#FF8C00' }
+        ];
+
+        let cart = [];
+        let currentProduct = null;
+        let selectedColor = 'Gris';
+        let stickerImageFile = null;
+        let stickerImageDataURL = null;
+        let deferredPrompt = null;
+
+        // Función para mostrar notificaciones toast
+        function showToast(message, type = 'success', duration = 3000) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                ${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
+                ${message}
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Persistencia con localStorage
+        function loadCartFromStorage() {
+            try {
+                const savedCart = localStorage.getItem('arteSobreRuedasCart');
+                if (savedCart) {
+                    cart = JSON.parse(savedCart);
+                }
+            } catch (e) {
+                cart = [];
+                console.error('Error loading cart from storage:', e);
+            }
+        }
+
+        function saveCartToStorage() {
+            try {
+                localStorage.setItem('arteSobreRuedasCart', JSON.stringify(cart));
+            } catch (e) {
+                console.error('Error saving cart to storage:', e);
+            }
+        }
+
+        // Validación de formularios
+        function validateForm(form) {
+            const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+            let isValid = true;
+            let firstError = null;
+            
+            inputs.forEach(input => {
+                input.style.borderColor = '';
+                if (!input.value.trim()) {
+                    input.style.borderColor = '#ff4444';
+                    isValid = false;
+                    if (!firstError) firstError = input;
+                }
+                
+                // Validación de email
+                if (input.type === 'email' && input.value) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(input.value)) {
+                        input.style.borderColor = '#ff4444';
+                        isValid = false;
+                        if (!firstError) firstError = input;
+                        showToast('Por favor ingresa un correo electrónico válido', 'error');
+                    }
+                }
+                
+                // Validación de teléfono
+                if (input.type === 'tel' && input.value) {
+                    const phoneRegex = /^[\d\s\-\+\(\)]{10,}$/;
+                    const cleanPhone = input.value.replace(/\s/g, '');
+                    if (!phoneRegex.test(cleanPhone) || cleanPhone.length < 10) {
+                        input.style.borderColor = '#ff4444';
+                        isValid = false;
+                        if (!firstError) firstError = input;
+                        showToast('Ingresa un número de teléfono válido (mínimo 10 dígitos)', 'error');
+                    }
+                }
+                
+                // Validación de código postal
+                if (input.id === 'checkoutZip' && input.value) {
+                    if (!/^\d{5}$/.test(input.value)) {
+                        input.style.borderColor = '#ff4444';
+                        isValid = false;
+                        if (!firstError) firstError = input;
+                        showToast('El código postal debe tener 5 dígitos', 'error');
+                    }
+                }
+            });
+            
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            
+            return isValid;
+        }
+
+        // Cálculo de precios
+        function calculatePrice(basePrice, customizations) {
+            let price = basePrice;
+            
+            // Costos adicionales por personalización
+            if (customizations.sticker !== 'Ninguno') price += 49.99;
+            if (customizations.customName !== 'Ninguno') price += 29.99;
+            if (customizations.stickerImage) price += 79.99;
+            
+            return price;
+        }
+
+        // Verificar stock
+        function checkStock(productId, quantity = 1) {
+            const product = products.find(p => p.id === productId);
+            if (!product || !product.available) return false;
+            
+            const currentInCart = cart
+                .filter(item => item.productId === productId)
+                .reduce((sum, item) => sum + item.quantity, 0);
+            
+            return (currentInCart + quantity) <= product.stock;
+        }
+
+        // Cálculo de totales con descuentos
+        function calculateCartTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const discount = cart.length >= 2 ? subtotal * (AppConfig.discountPercentage / 100) : 0;
+            const shipping = subtotal >= AppConfig.freeShippingMin ? 0 : AppConfig.shippingCost;
+            const tax = subtotal * (AppConfig.taxPercentage / 100);
+            const total = subtotal - discount + shipping + tax;
+            
+            return { subtotal, discount, shipping, tax, total };
+        }
+
+        // Lazy loading de imágenes
+        function lazyLoadImages() {
+            const images = document.querySelectorAll('.product-image[data-src]');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        observer.unobserve(img);
+                    }
+                });
+            });
+            
+            images.forEach(img => observer.observe(img));
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCartFromStorage();
+            renderProducts();
+            updateCartDisplay();
+            lazyLoadImages();
+            setupEventListeners();
+            setupPWA();
+            trackProductViews();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Sticker image upload
+            const stickerImageInput = document.getElementById('stickerImageInput');
+            if (stickerImageInput) {
+                stickerImageInput.addEventListener('change', handleStickerImageUpload);
+            }
+            
+            // Payment method change
+            const paymentMethodSelect = document.getElementById('paymentMethod');
+            if (paymentMethodSelect) {
+                paymentMethodSelect.addEventListener('change', function(e) {
+                    const instructions = document.getElementById('paymentInstructions');
+                    instructions.style.display = e.target.value === 'transferencia' ? 'block' : 'none';
+                    
+                    // Generar referencia de orden
+                    if (e.target.value === 'transferencia') {
+                        document.getElementById('orderReference').textContent = 
+                            'ASR-' + Date.now().toString().slice(-4);
+                    }
+                });
+            }
+            
+            // Cerrar modal al hacer clic fuera
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Tecla ESC para cerrar modales
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                    document.getElementById('cartSidebar').classList.remove('active');
+                }
+            });
+            
+            // Smooth scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        document.getElementById('navLinks').classList.remove('active');
+                    }
+                });
+            });
+        }
+
+        // Setup PWA
+        function setupPWA() {
+            // Detectar si se puede instalar
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Mostrar prompt después de 5 segundos
+                setTimeout(() => {
+                    if (deferredPrompt) {
+                        document.getElementById('installPrompt').classList.add('show');
+                    }
+                }, 5000);
+            });
+            
+            // Detectar si ya está instalada
+            window.addEventListener('appinstalled', () => {
+                showToast('¡Aplicación instalada correctamente!', 'success');
+                deferredPrompt = null;
+                document.getElementById('installPrompt').classList.remove('show');
+            });
+        }
+
+        // Track product views
+        function trackProductViews() {
+            const views = JSON.parse(localStorage.getItem('productViews') || '{}');
+            localStorage.setItem('productViews', JSON.stringify(views));
+        }
+
+        // Install app
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    }
+                    deferredPrompt = null;
+                    document.getElementById('installPrompt').classList.remove('show');
+                });
+            }
+        }
+
+        function dismissInstallPrompt() {
+            document.getElementById('installPrompt').classList.remove('show');
+            // No mostrar por 30 días
+            localStorage.setItem('installPromptDismissed', Date.now().toString());
+        }
+
+        // Render Products
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map(product => `
+                <div class="product-card" onclick="openProductModal(${product.id})">
+                    ${product.stock < 3 ? '<span class="stock-badge">🔄 Quedan pocos</span>' : ''}
+                    <img src="${product.image}" alt="${product.name}" class="product-image"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 300\"%3E%3Crect fill=\"%23e0e0e0\" width=\"400\" height=\"300\"/%3E%3Ctext x=\"50%25\" y=\"50%25\" fill=\"%234a4a4a\" font-size=\"20\" text-anchor=\"middle\" dy=\".3em\"%3E${product.name}%3C/text%3E%3C/svg%3E'">
+                    <div class="product-info">
+                        <h3 class="product-name">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <p class="product-price">$${product.basePrice.toFixed(2)} MXN</p>
+                        <button class="btn">Ver Detalles y Personalizar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Open Product Modal
+        function openProductModal(productId) {
+            currentProduct = products.find(p => p.id === productId);
+            selectedColor = 'Gris';
+            
+            document.getElementById('modalProductName').textContent = currentProduct.name;
+            document.getElementById('modalProductImage').src = currentProduct.image;
+            document.getElementById('modalPrice').textContent = `$${currentProduct.basePrice.toFixed(2)}`;
+            
+            // Resetear campos de personalización
+            document.getElementById('stickerInput').value = '';
+            document.getElementById('nameInput').value = '';
+            removeStickerImage();
+            
+            renderColorOptions();
+            document.getElementById('productModal').classList.add('active');
+            
+            // Track view
+            const views = JSON.parse(localStorage.getItem('productViews') || '{}');
+            views[productId] = (views[productId] || 0) + 1;
+            localStorage.setItem('productViews', JSON.stringify(views));
+        }
+
+        // Render Color Options
+        function renderColorOptions() {
+            const container = document.getElementById('colorOptions');
+            container.innerHTML = colors.map(color => `
+                <div class="color-option ${color.name === selectedColor ? 'selected' : ''}" 
+                     style="background: ${color.code}; ${color.name === 'Blanco' ? 'border: 2px solid #ddd;' : ''}"
+                     onclick="selectColor('${color.name}')"
+                     title="${color.name}">
+                </div>
+            `).join('');
+        }
+
+        // Select Color
+        function selectColor(colorName) {
+            selectedColor = colorName;
+            renderColorOptions();
+            
+            if (currentProduct && currentProduct.colorImages && currentProduct.colorImages[colorName]) {
+                const imgElement = document.getElementById('modalProductImage');
+                imgElement.style.opacity = '0.5';
+                
+                setTimeout(() => {
+                    imgElement.src = currentProduct.colorImages[colorName];
+                    imgElement.onload = function() {
+                        this.style.opacity = '1';
+                    };
+                    imgElement.onerror = function() {
+                        this.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%23e0e0e0' width='400' height='300'/%3E%3Ctext x='50%25' y='40%25' fill='%234a4a4a' font-size='20' font-weight='bold' text-anchor='middle'%3E${currentProduct.name}%3C/text%3E%3Ctext x='50%25' y='55%25' fill='%234CAF50' font-size='18' font-weight='bold' text-anchor='middle'%3EColor: ${colorName}%3C/text%3E%3Ctext x='50%25' y='65%25' fill='%238B8B8B' font-size='14' text-anchor='middle'%3EImagen de referencia%3C/text%3E%3C/svg%3E`;
+                        this.style.opacity = '1';
+                    };
+                }, 150);
+            }
+        }
+
+        // Close Modal
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+            stickerImageFile = null;
+            stickerImageDataURL = null;
+        }
+
+        // Handle Sticker Image Upload
+        function handleStickerImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('Por favor selecciona un archivo de imagen válido', 'error');
+                event.target.value = '';
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('La imagen es demasiado grande. Máximo 5MB', 'error');
+                event.target.value = '';
+                return;
+            }
+            
+            stickerImageFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                stickerImageDataURL = e.target.result;
+                document.getElementById('stickerPreviewImg').src = e.target.result;
+                document.getElementById('stickerImagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Remove Sticker Image
+        function removeStickerImage() {
+            stickerImageFile = null;
+            stickerImageDataURL = null;
+            document.getElementById('stickerImageInput').value = '';
+            document.getElementById('stickerImagePreview').style.display = 'none';
+        }
+
+        // Add to Cart
+        function addToCart() {
+            if (!checkStock(currentProduct.id, 1)) {
+                showToast('Lo sentimos, no hay suficiente stock de este producto', 'error');
+                return;
+            }
+            
+            const sticker = document.getElementById('stickerInput').value;
+            const stickerColor = document.getElementById('stickerColorInput').value;
+            const stickerLocation = document.getElementById('stickerLocationInput').value;
+            const customName = document.getElementById('nameInput').value;
+            const textColor = document.getElementById('textColorInput').value;
+            const textLocation = document.getElementById('textLocationInput').value;
+            
+            const price = calculatePrice(currentProduct.basePrice, {
+                sticker: sticker || 'Ninguno',
+                customName: customName || 'Ninguno',
+                stickerImage: stickerImageDataURL || null
+            });
+            
+            const cartItem = {
+                id: Date.now(),
+                productId: currentProduct.id,
+                productName: currentProduct.name,
+                color: selectedColor,
+                sticker: sticker || 'Ninguno',
+                stickerColor: stickerColor || 'N/A',
+                stickerLocation: stickerLocation || 'N/A',
+                stickerImage: stickerImageDataURL || null,
+                customName: customName || 'Ninguno',
+                textColor: textColor || 'N/A',
+                textLocation: textLocation || 'N/A',
+                price: price,
+                quantity: 1,
+                image: currentProduct.image,
+                addedAt: new Date().toISOString()
+            };
+            
+            cart.push(cartItem);
+            saveCartToStorage();
+            updateCartDisplay();
+            closeModal();
+            toggleCart();
+            
+            showToast('✅ Producto agregado al carrito exitosamente');
+            
+            // Track add to cart
+            const adds = JSON.parse(localStorage.getItem('cartAdds') || '{}');
+            adds[currentProduct.id] = (adds[currentProduct.id] || 0) + 1;
+            localStorage.setItem('cartAdds', JSON.stringify(adds));
+        }
+
+        // Toggle Cart
+        function toggleCart() {
+            document.getElementById('cartSidebar').classList.toggle('active');
+        }
+
+        // Update Cart Display
+        function updateCartDisplay() {
+            const cartCount = document.getElementById('cartCount');
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            
+            cartCount.textContent = cart.length;
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="empty-cart">
+                        <p style="font-size: 3rem;">🛒</p>
+                        <p>Tu carrito está vacío</p>
+                    </div>
+                `;
+                cartTotal.textContent = 'Total: $0.00 MXN';
+                return;
+            }
+            
+            const totals = calculateCartTotals();
+            
+            cartItems.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <img src="${item.image}" class="cart-item-image" alt="${item.productName}">
+                    <div class="cart-item-info">
+                        <strong>${item.productName}</strong>
+                        <p style="font-size: 0.9rem; color: var(--secondary-gray);">
+                            Color: ${item.color}<br>
+                            ${item.sticker !== 'Ninguno' ? `Sticker: ${item.sticker}<br>` : ''}
+                            ${item.customName !== 'Ninguno' ? `Nombre: ${item.customName}<br>` : ''}
+                            Precio: $${item.price.toFixed(2)} MXN
+                        </p>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeQuantity(${item.id}, -1)">-</button>
+                            <span style="padding: 0 1rem; font-weight: bold;">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="changeQuantity(${item.id}, 1)">+</button>
+                        </div>
+                    </div>
+                    <button class="remove-item" onclick="removeFromCart(${item.id})">🗑️</button>
+                </div>
+            `).join('');
+            
+            let totalText = `Total: $${totals.total.toFixed(2)} MXN`;
+            if (totals.discount > 0) {
+                totalText += ` (Ahorras $${totals.discount.toFixed(2)})`;
+            }
+            if (totals.shipping === 0 && totals.subtotal > 0) {
+                totalText += ' 🎉 Envío gratis';
+            }
+            
+            cartTotal.textContent = totalText;
+        }
+
+        // Change Quantity
+        function changeQuantity(itemId, change) {
+            const item = cart.find(i => i.id === itemId);
+            if (item) {
+                if (!checkStock(item.productId, change)) {
+                    showToast('No hay suficiente stock disponible', 'error');
+                    return;
+                }
+                
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeFromCart(itemId);
+                } else {
+                    saveCartToStorage();
+                    updateCartDisplay();
+                }
+            }
+        }
+
+        // Remove from Cart
+        function removeFromCart(itemId) {
+            cart = cart.filter(item => item.id !== itemId);
+            saveCartToStorage();
+            updateCartDisplay();
+            showToast('Producto eliminado del carrito', 'info');
+        }
+
+        // Proceed to Checkout
+        function proceedToCheckout() {
+            if (cart.length === 0) {
+                showToast('Tu carrito está vacío', 'error');
+                return;
+            }
+            
+            const totals = calculateCartTotals();
+            const summary = cart.map(item => `
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--secondary-gray);">
+                    <strong>${item.productName}</strong> (x${item.quantity})<br>
+                    <span style="font-size: 0.9rem; color: var(--secondary-gray);">
+                        Color: ${item.color}
+                        ${item.sticker !== 'Ninguno' ? `, Sticker: ${item.sticker}` : ''}
+                        ${item.customName !== 'Ninguno' ? `, Nombre: ${item.customName}` : ''}
+                    </span><br>
+                    <span style="color: var(--accent-green); font-weight: bold;">$${(item.price * item.quantity).toFixed(2)} MXN</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('checkoutSummary').innerHTML = summary;
+            
+            let totalText = `$${totals.total.toFixed(2)}`;
+            if (totals.discount > 0 || totals.shipping === 0) {
+                totalText += '<br><small style="font-size: 0.9rem; color: var(--secondary-gray);">';
+                if (totals.discount > 0) totalText += `Descuento: -$${totals.discount.toFixed(2)}<br>`;
+                totalText += `Envío: ${totals.shipping === 0 ? 'GRATIS 🎉' : `$${totals.shipping.toFixed(2)}`}`;
+                totalText += '</small>';
+            }
+            
+            document.getElementById('checkoutTotal').innerHTML = totalText;
+            document.getElementById('checkoutModal').classList.add('active');
+            toggleCart();
+        }
+
+        // Close Checkout
+        function closeCheckout() {
+            document.getElementById('checkoutModal').classList.remove('active');
+        }
+
+        // Handle Checkout Form
+        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm(this)) {
+                showToast('Por favor completa todos los campos requeridos correctamente', 'error');
+                return;
+            }
+            
+            const name = document.getElementById('checkoutName').value;
+            const email = document.getElementById('checkoutEmail').value;
+            const phone = document.getElementById('checkoutPhone').value;
+            const street = document.getElementById('checkoutStreet').value;
+            const neighborhood = document.getElementById('checkoutNeighborhood').value;
+            const city = document.getElementById('checkoutCity').value;
+            const state = document.getElementById('checkoutState').value;
+            const zip = document.getElementById('checkoutZip').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const comments = document.getElementById('checkoutComments').value;
+            
+            const address = `${street}, ${neighborhood}, ${city}, ${state}, CP: ${zip}`;
+            const totals = calculateCartTotals();
+            
+            let message = `*🚗 NUEVO PEDIDO - Arte Sobre Ruedas*%0A%0A`;
+            message += `*📅 Fecha:* ${new Date().toLocaleDateString('es-MX')}%0A`;
+            message += `*⏰ Hora:* ${new Date().toLocaleTimeString('es-MX')}%0A%0A`;
+            
+            message += `*👤 CLIENTE*%0A`;
+            message += `Nombre: ${name}%0A`;
+            message += `Email: ${email}%0A`;
+            message += `Teléfono: ${phone}%0A%0A`;
+            
+            message += `*📍 DIRECCIÓN DE ENVÍO*%0A${address}%0A%0A`;
+            
+            message += `*💳 MÉTODO DE PAGO*%0A${paymentMethod}%0A`;
+            if (paymentMethod === 'transferencia') {
+                message += `Referencia: ASR-${Date.now().toString().slice(-4)}%0A`;
+            }
+            message += `%0A`;
+            
+            message += `*🛍️ PRODUCTOS (${cart.length})*%0A`;
+            cart.forEach((item, index) => {
+                message += `%0A${index + 1}. *${item.productName}*%0A`;
+                message += `   🎨 Color: ${item.color}%0A`;
+                if (item.sticker !== 'Ninguno') message += `   🏷️ Sticker: ${item.sticker}%0A`;
+                if (item.customName !== 'Ningno') message += `   ✍️ Texto: ${item.customName}%0A`;
+                message += `   📦 Cantidad: ${item.quantity}%0A`;
+                message += `   💰 Subtotal: $${(item.price * item.quantity).toFixed(2)}%0A`;
+            });
+            
+            message += `%0A*💰 RESUMEN DE PAGO*%0A`;
+            message += `Subtotal: $${totals.subtotal.toFixed(2)}%0A`;
+            if (totals.discount > 0) message += `Descuento (${AppConfig.discountPercentage}%): -$${totals.discount.toFixed(2)}%0A`;
+            message += `Envío: ${totals.shipping === 0 ? 'GRATIS 🎉' : `$${totals.shipping.toFixed(2)}`}%0A`;
+            message += `*TOTAL: $${totals.total.toFixed(2)}*%0A%0A`;
+            
+            if (comments) {
+                message += `*📝 COMENTARIOS*%0A${comments}`;
+            }
+            
+            const whatsappUrl = `https://wa.me/${AppConfig.whatsappNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+            
+            showToast('✅ Pedido enviado! Te contactaremos pronto por WhatsApp.');
+            
+            // Guardar datos del pedido
+            const order = {
+                id: Date.now(),
+                customer: { name, email, phone, address },
+                items: [...cart],
+                totals: totals,
+                paymentMethod: paymentMethod,
+                status: 'pending',
+                date: new Date().toISOString()
+            };
+            
+            const orders = JSON.parse(localStorage.getItem('arteSobreRuedasOrders') || '[]');
+            orders.push(order);
+            localStorage.setItem('arteSobreRuedasOrders', JSON.stringify(orders));
+            
+            // Vaciar carrito
+            cart = [];
+            saveCartToStorage();
+            updateCartDisplay();
+            closeCheckout();
+            
+            // Mostrar recordatorio si hay imágenes personalizadas
+            const hasImages = cart.some(item => item.stickerImage);
+            if (hasImages) {
+                setTimeout(() => {
+                    showToast('📸 Recuerda enviar las imágenes personalizadas por WhatsApp', 'info', 5000);
+                }, 1000);
+            }
+        });
+
+        // Handle Custom Order Form
+        document.getElementById('customOrderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm(this)) {
+                showToast('Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const name = this[0].value;
+            const email = this[1].value;
+            const phone = this[2].value;
+            const vehicleType = this[3].value;
+            const colors = this[4].value;
+            const description = this[5].value;
+            const budget = this[6].value;
+            
+            let message = `*🎨 SOLICITUD DE DISEÑO PERSONALIZADO*%0A%0A`;
+            message += `*Cliente:* ${name}%0A`;
+            message += `*Email:* ${email}%0A`;
+            message += `*Teléfono:* ${phone}%0A%0A`;
+            message += `*Tipo de Vehículo:* ${vehicleType}%0A`;
+            message += `*Colores Preferidos:* ${colors}%0A`;
+            message += `*Presupuesto:* ${budget} MXN%0A%0A`;
+            message += `*Descripción del Diseño:*%0A${description}`;
+            
+            const whatsappUrl = `https://wa.me/${AppConfig.whatsappNumber}?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+            
+            showToast('✅ Solicitud enviada! Nos pondremos en contacto pronto para discutir tu diseño.');
+            this.reset();
+        });
+
+        // Toggle Mobile Menu
+        function toggleMobileMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('¿Estás seguro de que quieres borrar todos los datos guardados? Esto incluye carrito, pedidos y estadísticas.')) {
+                localStorage.removeItem('arteSobreRuedasCart');
+                localStorage.removeItem('arteSobreRuedasOrders');
+                localStorage.removeItem('productViews');
+                localStorage.removeItem('cartAdds');
+                localStorage.removeItem('installPromptDismissed');
+                
+                cart = [];
+                updateCartDisplay();
+                
+                showToast('Todos los datos han sido borrados', 'info');
+            }
+        }
+
+        // Generar reporte de ventas (para uso interno)
+        function generateSalesReport() {
+            const orders = JSON.parse(localStorage.getItem('arteSobreRuedasOrders') || '[]');
+            if (orders.length === 0) {
+                showToast('No hay pedidos registrados', 'info');
+                return;
+            }
+            
+            let report = `*📊 REPORTE DE VENTAS - Arte Sobre Ruedas*%0A%0A`;
+            report += `*Fecha:* ${new Date().toLocaleDateString('es-MX')}%0A`;
+            report += `*Total Pedidos:* ${orders.length}%0A%0A`;
+            
+            let totalRevenue = 0;
+            orders.forEach((order, index) => {
+                report += `*Pedido ${index + 1}:*%0A`;
+                report += `Cliente: ${order.customer.name}%0A`;
+                report += `Fecha: ${new Date(order.date).toLocaleDateString('es-MX')}%0A`;
+                report += `Total: $${order.totals.total.toFixed(2)}%0A`;
+                report += `Estado: ${order.status}%0A%0A`;
+                totalRevenue += order.totals.total;
+            });
+            
+            report += `*📈 RESUMEN*%0A`;
+            report += `Ingresos Totales: $${totalRevenue.toFixed(2)}%0A`;
+            report += `Pedidos Pendientes: ${orders.filter(o => o.status === 'pending').length}%0A`;
+            report += `Pedidos Completados: ${orders.filter(o => o.status === 'completed').length}%0A`;
+            
+            const whatsappUrl = `https://wa.me/${AppConfig.whatsappNumber}?text=${report}`;
+            window.open(whatsappUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
